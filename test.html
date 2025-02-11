@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>HTML + CSS</title>
+    <link rel="stylesheet" href="./clicnt.css">
+</head>
+
+<body>
+    <h1>Chat App</h1>
+    <p><i id="server-name"></i></p>
+    <div id="container" style="display: none;">
+        <h2 id="user-name"></h2>
+        <div id="msg-box">
+            <div id="server"></div>
+            <div id="client"></div>
+        </div>
+        <input type="text" value="test" id="messageInput" autocomplete="off">
+        <button id="send-msg">Send</button>
+        <select name="select-receiver" id="receiver">
+            <option value="" selected="true">Send to</option>
+        </select>
+    </div>
+    <button id="connect" onClick="connect()">Connect to Server</button>
+</body>
+<script>
+    let serverMessage = document.getElementById("server");
+    let clientMessage = document.getElementById("client");
+    document.getElementById("connect").click();
+
+    function connect() {
+        console.log("test");
+        let username = prompt("Enter your username: ");
+        document.getElementById("user-name").innerText = username;
+
+        let ws = new WebSocket("ws://localhost:8080", ["chat", "json"]);
+        ws.onopen = function (e) {
+            ws.send(JSON.stringify({
+                type: "id",
+                id: username
+            }));
+        };
+        document.querySelector("#connect").disabled = true;
+        document.querySelector("#container").style.display = "block";
+
+        //  receive messsage from server
+        ws.onmessage = function (mg) {
+            let msg = mg.data;
+
+            if (typeof msg == "string") msg = JSON.parse(msg);
+
+            console.log(msg.type);
+
+            switch (msg.type) {
+                case "name":
+                    document.getElementById("server-name").innerText = "You're now Connected to: " + msg.name;
+                    ws.serverName = msg.name;
+                    break;
+                case "message":
+                    let ele = document.createElement("p");
+                    ele.className = "server-msg";
+                    ele.innerText = `${ws?.serverName} : ${msg.message}`;
+                    serverMessage.appendChild(ele);
+                    serverMessage.appendChild(document.createElement("br"))
+                    break;
+
+                case "newClient":
+                    console.log("id received", msg);
+                    updateClientList(msg.client);
+                    break;
+
+                case "limit":
+                    alert("Max clients limit exceeded...");
+                    window.close();
+
+            }
+
+        }
+        function updateClientList(clients) {
+            for (let i = 0; i < clients.length; i++) {
+                let client = clients[i];
+                console.log("enter", client);
+                let opt = document.createElement("option");
+                opt.className = client;
+                opt.value = client;
+                opt.text = client;
+                document.getElementById("receiver").appendChild(opt);
+            }
+        }
+        // send message from client
+        document.querySelector("#send-msg").addEventListener("click", () => {
+            let message = document.getElementById("messageInput");
+
+            ws.send(JSON.stringify({ type: "message", message: message.value, client: document.getElementById("receiver")?.value }));
+            let ele = document.createElement("p");
+            ele.className = "client-msg";
+            ele.innerText = "You: " + message.value;
+            clientMessage.appendChild(ele);
+            serverMessage.appendChild(document.createElement("br"))
+            message.value = "";
+        })
+
+        ws.onerror = function (err) {
+            console.dir("vin", err);
+        };
+        ws.onclose = function (e) {
+            ws.send(JSON.stringify({ type: "close", client: ws.client }))
+        }
+    }
+</script>
+
+</html>

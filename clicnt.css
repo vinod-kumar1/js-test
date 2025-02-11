@@ -1,0 +1,22 @@
+#msg-box {
+    background-color: aqua;
+    border: 1px solid black;
+    overflow: auto;
+    height: 400px;
+    position: relative;
+    width: 70%;
+    display: flex;
+    justify-content: space-between;
+}
+
+.server-msg,
+.client-msg {
+    width: max-content;
+    border: 1px solid grey;
+    border-radius: 2px;
+    background-color: grey;
+    color: white;
+    position: relative;
+    padding: 0px 0.5rem;
+    margin: 0px 1rem;
+}

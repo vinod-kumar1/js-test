@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebSocket Client</title>
+</head>
+<body>
+  <h1>WebSocket Client</h1>
+  <textarea id="messages" rows="10" cols="30" readonly></textarea><br>
+  <input type="text" id="inputMessage" placeholder="Type your message">
+  <button onclick="sendMessage()">Send</button>
+
+  <script>
+    // Create WebSocket connection
+    const socket = new WebSocket('ws://localhost:8080');
+
+    // Event handler for when connection is established
+    socket.onopen = () => {
+      console.log('Connected to the server');
+      document.getElementById('messages').value += 'Connected to the server\n';
+    };
+
+    // Event handler for when a message is received from the server
+    socket.onmessage = (event) => {
+      console.log('Message from server:', event.data);
+      document.getElementById('messages').value += `Server: ${event.data}\n`;
+    };
+
+    // Event handler for when the connection is closed
+    socket.onclose = () => {
+      console.log('Disconnected from the server');
+      document.getElementById('messages').value += 'Disconnected from the server\n';
+    };
+
+    // Send a message to the WebSocket server
+    function sendMessage() {
+      const message = document.getElementById('inputMessage').value;
+      socket.send(message);
+      document.getElementById('messages').value += `You: ${message}\n`;
+      document.getElementById('inputMessage').value = ''; // Clear input field
+    }
+  </script>
+</body>
+</html>
