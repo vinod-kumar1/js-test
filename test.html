@@ -62,13 +62,17 @@
                 case "message":
                     let ele = document.createElement("p");
                     ele.className = "server-msg";
-                    ele.innerText = `${ws?.serverName} : ${msg.message}`;
+                    ele.innerText = `${msg?.name} : ${msg.message}`;
                     serverMessage.appendChild(ele);
                     serverMessage.appendChild(document.createElement("br"))
                     break;
 
                 case "newClient":
-                    console.log("id received", msg);
+                    console.log("id received", msg.client);
+                    if (!ws.client) {
+                        ws.client = msg.client.at(-1)
+                    }
+
                     updateClientList(msg.client);
                     break;
 
@@ -79,14 +83,19 @@
             }
 
         }
+
+        function removeAllChilds() {
+            document.getElementById("receiver").innerHTML = "";
+        }
         function updateClientList(clients) {
+            removeAllChilds();
             for (let i = 0; i < clients.length; i++) {
                 let client = clients[i];
                 console.log("enter", client);
                 let opt = document.createElement("option");
                 opt.className = client;
                 opt.value = client;
-                opt.text = client;
+                opt.text = ws.client == client ? client + " (You)" : client;
                 document.getElementById("receiver").appendChild(opt);
             }
         }
@@ -94,7 +103,7 @@
         document.querySelector("#send-msg").addEventListener("click", () => {
             let message = document.getElementById("messageInput");
 
-            ws.send(JSON.stringify({ type: "message", message: message.value, client: document.getElementById("receiver")?.value }));
+            ws.send(JSON.stringify({ type: "message", message: message.value, client: document.getElementById("receiver")?.value, name: username }));
             let ele = document.createElement("p");
             ele.className = "client-msg";
             ele.innerText = "You: " + message.value;
@@ -106,6 +115,7 @@
         ws.onerror = function (err) {
             console.dir("vin", err);
         };
+
         ws.onclose = function (e) {
             ws.send(JSON.stringify({ type: "close", client: ws.client }))
         }

@@ -6,9 +6,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
+<link rel="stylesheet" href="./clicnt.css">
 
 <body>
+    <div class="container">
+
+        <div class="clients">
+
+            <div id="c1">
+                <button class="client connect-c1" onclick="connectClient('c1')">Connect</button>
+            </div>
+            <div id="c2">
+
+                <button class="client connect-c2" onclick="connectClient('c2')">Connect</button>
+            </div>
+        </div>
+    </div>
 
 </body>
+<script>
+    let clicked = 0;
+    function connectClient(ele) {
+        window.open("./test.html", "_blank").focus();
+        document.getElementById(ele).remove();
+        clicked++;
+        if (clicked >= 2) window.close();
+    }
+
+
+</script>
 
 </html>
