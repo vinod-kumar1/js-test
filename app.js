@@ -1,6 +1,12 @@
 const WebSocket = require('ws');
 const readline = require('readline');
 let { v4 } = require("uuid");
+let app = require("express")();
+
+app.get("/", (req, res) => {
+  res.send("Done");
+})
+app.listen(3000);
 
 // Create WebSocket server on port 8080
 const wss = new WebSocket.Server({ port: 8080 });
@@ -15,6 +21,7 @@ wss.on('connection', (ws) => {
     ws.close()
     return;
   };
+  ws.on("error", console.log("Vinod Error: ", err));
   //  listen to the incomming messages
   ws.on('message', (message) => {
     let msg;
@@ -39,6 +46,8 @@ wss.on('connection', (ws) => {
         console.log("received a message from client", msg.client, msg.message);
         !msg.client ? console.log(ws.clientName, ':', msg.message) : sendMessageToClient(msg);
         break;
+      case "ping":
+        ws.send("pong");
       case "close":
         publicClients.delete(msg.client);
 
@@ -50,6 +59,7 @@ wss.on('connection', (ws) => {
   // Handle client disconnection
   ws.on('close', () => {
     console.log('Client disconnected');
+    closeDisconnectedClients();
   });
 });
 
@@ -68,7 +78,14 @@ function sendMessageToClient({ message, client, name }) {
       cl.send(JSON.stringify({ type: "message", message: message, name: name }));
     }
   });
+}
 
+function closeDisconnectedClients() {
+  console.log(wss.clients);
+  wss.clients.forEach((client) => {
+    console.log(client);
+    if (client.CLOSED) publicClients.delete(client.client);
+  })
 }
 
 // Function to send a message from the server to all clients
